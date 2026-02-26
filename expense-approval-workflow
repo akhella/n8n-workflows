@@ -1,0 +1,299 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "n8nui",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1d05a430-4a1e-4cf2-b557-9cdd97057169",
+      "name": "Webhook",
+      "webhookId": "91d87c0a-5d45-4556-8754-772991bbf03d"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "1432c6b0-06f0-41d7-bc62-9ebe4324dcab",
+      "name": "Wait",
+      "webhookId": "59262cb8-9f97-4b96-afde-5ceb0c70a971"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "183eef86-75c9-45cc-9472-b88422535b54",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c36b3975-caf6-4cf7-86ca-fe32b96e9f81",
+              "name": "status",
+              "value": "Approved",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "d5cb19d3-16d7-4f88-bc5a-1d8b1c2f6c8c",
+      "name": "Approve"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c36b3975-caf6-4cf7-86ca-fe32b96e9f81",
+              "name": "status",
+              "value": "Rejected",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        96
+      ],
+      "id": "cbb721d3-561a-48fa-8c46-9852d0a32385",
+      "name": "Reject"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9185547a-c0ea-4264-8fbf-cb0d34fcdacc",
+              "name": "amount",
+              "value": "={{ Math.floor(Math.random() * 10000) + 1 }}",
+              "type": "string"
+            },
+            {
+              "id": "519e3bb9-af75-4dd9-8cd5-c43b3153250b",
+              "name": "submittedBy",
+              "value": "Sarah Chen",
+              "type": "string"
+            },
+            {
+              "id": "0fed6075-cf3c-46f1-b4db-ec575bb676e7",
+              "name": "description",
+              "value": "Office equipment",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3eeb2159-147a-4071-9d23-b6766ab01b4d",
+      "name": "Set Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"executionId\": \"{{ $execution.id }}\",\n  \"amount\": \"{{ $json.amount }}\",\n  \"submittedBy\": \"{{ $json.submittedBy }}\",\n  \"description\": \"{{ $json.description }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "eaee0fda-499c-426b-9939-9fe43de828e2",
+      "name": "Send Request to Human",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "97c6d4f9-9859-4ea5-84e8-a1457155b02e",
+              "leftValue": "={{ $json.body.approved }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        0
+      ],
+      "id": "182a0028-806c-4c80-a2f1-913404077510",
+      "name": "Process Human Decision"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"{{ $json.status }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1568,
+        0
+      ],
+      "id": "8a472bc7-4d49-4104-8768-512fe5f7067d",
+      "name": "Send Final Status"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Process Human Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send Final Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Set Request": {
+      "main": [
+        [
+          {
+            "node": "Send Request to Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Request to Human": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Human Decision": {
+      "main": [
+        [
+          {
+            "node": "Approve",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "434c0306e4cbd69b64ad817b57da4594bccfa5db3e3bab392760c53480681c1b"
+  }
+}
